@@ -1,23 +1,21 @@
-# Используем официальный образ Node.js
-FROM node:18
+FROM node:20-alpine3.18 as base
 
-# Создаем директорию для приложения
 WORKDIR /app
 
-# Копируем yarn.lock и package.json
-COPY yarn.lock package.json ./
+COPY package*.json tsconfig.json ./
+COPY torrent-video-streaming .
 
-# Устанавливаем зависимости с использованием Yarn
-RUN yarn install
+RUN npm ci && npm run build
 
-# Копируем исходный код
-COPY . .
 
-# Компилируем TypeScript в JavaScript
-RUN yarn run build
+FROM node:20-alpine3.18
 
-# Указываем порт, на котором будет работать приложение
-EXPOSE 5000
+WORKDIR /app
 
-# Запуск приложения
-CMD ["node", "dist/server.js"]
+COPY package*.json ./
+RUN  npm ci --production
+COPY --from=base /app/build ./build
+
+EXPOSE 8000
+
+CMD ["npm", "start"]
