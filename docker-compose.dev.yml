@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/torrentapp
+    depends_on:
+      - mongo
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+
+  mongo:
+    image: mongo
+    volumes:
+      - ./mongod.conf:/etc/mongo/mongod.conf
+      - mongodata:/data/db
+    command: mongod --config /etc/mongo/mongod.conf
+    ports:
+      - "27017:27017"
+
+volumes:
+  mongodata:
